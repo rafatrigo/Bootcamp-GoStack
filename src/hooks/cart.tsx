@@ -35,7 +35,7 @@ const CartProvider: React.FC = ({ children }) => {
       );
 
       if (storagedProducts) {
-        setProducts([JSON.parse(storagedProducts)]);
+        setProducts([...JSON.parse(storagedProducts)]);
       }
     }
 
@@ -50,12 +50,12 @@ const CartProvider: React.FC = ({ children }) => {
         setProducts(
           products.map(item =>
             item.id === product.id
-              ? { ...product, quantity: item.quantity + 1 }
+              ? { ...item, quantity: item.quantity + 1 }
               : item,
           ),
         );
       } else {
-        setProducts(state => [...state, product]);
+        setProducts(state => [...state, { ...product, quantity: 1 }]);
       }
 
       await AsyncStorage.setItem(
@@ -67,12 +67,41 @@ const CartProvider: React.FC = ({ children }) => {
   );
 
   const increment = useCallback(async id => {
-    // TODO
+    setProducts(state =>
+      state.map(product =>
+        product.id === id
+          ? { ...product, quantity: product.quantity + 1 }
+          : product,
+      ),
+    );
+    await AsyncStorage.setItem(
+      '@GoMarketplace:products',
+      JSON.stringify(products),
+    );
   }, []);
 
-  const decrement = useCallback(async id => {
-    // TODO DECREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+  const decrement = useCallback(
+    async id => {
+      const currentProduct = products.find(item => item.id === id);
+
+      if (currentProduct && currentProduct.quantity > 1) {
+        setProducts(state =>
+          state.map(product =>
+            product.id === id
+              ? { ...product, quantity: product.quantity - 1 }
+              : product,
+          ),
+        );
+      } else {
+        setProducts(state => state.filter(product => product.id !== id));
+      }
+      await AsyncStorage.setItem(
+        '@GoMarketplace:products',
+        JSON.stringify(products),
+      );
+    },
+    [products],
+  );
 
   const value = React.useMemo(
     () => ({ addToCart, increment, decrement, products }),
