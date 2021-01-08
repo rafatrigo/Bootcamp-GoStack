@@ -37,16 +37,14 @@ const Dashboard: React.FC = () => {
     async function loadProducts(): Promise<void> {
       const response = await api.get('/products');
 
-      const newProducts = response.data;
-
-      setProducts(newProducts);
+      setProducts(response.data);
     }
 
     loadProducts();
   }, []);
 
   function handleAddToCart(item: Product): void {
-    // TODO
+    addToCart(item);
   }
 
   return (
